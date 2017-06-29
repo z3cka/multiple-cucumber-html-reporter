@@ -35,7 +35,7 @@
 
         <nav class="navbar">
             <div class="container-fluid">
-                <p class="navbar-text">Multiple Cucumber HTML Reporter</p>
+                <p class="navbar-text">Multiple Behat HTML Reporter</p>
             </div>
         </nav>
 
@@ -52,6 +52,16 @@
                     <div class="x_panel fixed_height_320">
                         <%= featuresScenariosOverviewChart %>
                     </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12 col-sm-12 col-xs-12">
+                    <div class="x_panel">
+                        <div class="x_content">
+                            <canvas id="time-chart"></canvas>
+                        </div>
+                    </div>                
                 </div>
             </div>
 
@@ -77,7 +87,9 @@
         <script>
             $(document).ready(function () {
                 $('#features-table').dataTable({
-                    "order": [[0, "asc"]]
+                    "order": [[1, "asc"]],
+                    "paging": true,
+                    "lengthMenu": [ 10, 25, 50, 75, 100, 1000, 2000, 4000 ]
                 });
 
                 var featureOptions = {
@@ -146,6 +158,52 @@
                         }]
                     },
                     options: scenarioOptions
+                });
+
+                var features_table = $('#features-table').DataTable();
+
+                // return array of test dates for labels 
+                function testDates() {
+                    var hourly = [];
+                    var column_data = features_table.column(1).data();
+                    for(var i = 0; i < column_data.length; i++) {
+                        if(column_data[i].slice(-2) == "00") {
+                            hourly.push(column_data[i]);
+                        }
+                    }
+                    return hourly;
+                }
+                // return an object for each row in a array
+                function testDateResults() {
+                    var rows = features_table.rows().data();
+                    var rowObjs = [];
+                    for(var i = 0; i < rows.length; i++) {
+                        console.log(rows[i][1].slice(-2));
+                        if(rows[i][1].slice(-2) == "00") {
+                            console.log(rows[i][1].slice(-2));
+                            var tmpRowObj = {
+                                x: rows[i][1],
+                                y: rows[i][5]
+                            }
+                            rowObjs.push(tmpRowObj);
+                        }
+                    }
+                    return rowObjs;
+                }
+
+                // time chart
+                new Chart(document.getElementById("time-chart"), {
+                    type: 'line',
+                    data: {
+                        labels: testDates(),
+                        datasets: [{
+                            label: "Passes",
+                            backgroundColor: "#1ABB9C",
+                            borderColor: "#1ABB9C",
+                            fill: false,
+                            data: testDateResults()
+                        }]
+                    }
                 });
 
                 <%= genericScript %>
